@@ -430,6 +430,37 @@ class SystemChecksTestCase(SimpleTestCase):
         ]
         self.assertEqual(errors, expected)
 
+    def test_autocomplete_e001(self):
+
+        class AutocompleteNoTupleAdmin(admin.ModelAdmin):
+            autocomplete_fields = 'title'
+
+        errors = AutocompleteNoTupleAdmin(Album, AdminSite()).check()
+        expected = [
+            checks.Error(
+                "The value of 'autocomplete_fields' must be a list or tuple.",
+                obj=AutocompleteNoTupleAdmin,
+                id='admin.E001',
+            )
+        ]
+        self.assertEqual(errors, expected)
+
+    def test_autocomplete_e002(self):
+
+        class AutocompleteNoneExistingAdmin(admin.ModelAdmin):
+            autocomplete_fields = ('nonexisting',)
+
+        errors = AutocompleteNoneExistingAdmin(Album, AdminSite()).check()
+        expected = [
+            checks.Error(
+                "The value of 'autocomplete_fields[0]' refers to 'nonexisting', "
+                "which is not an attribute of 'admin_checks.Album'.",
+                obj=AutocompleteNoneExistingAdmin,
+                id='admin.E002',
+            )
+        ]
+        self.assertEqual(errors, expected)
+
     def test_fk_exclusion(self):
         """
         Regression test for #11709 - when testing for fk excluding (when exclude is

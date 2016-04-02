@@ -47,6 +47,17 @@ be compatible with Django 2.0.
 What's new in Django 1.11
 =========================
 
+Autocomplete fields in the admin
+--------------------------------
+
+```ModelAdmin`` supports new
+`autocomplete_fields <django.contrib.admin.AdminSite.autocomplete_fields>`
+for the ``ForeignKeyField`` and ``Many2ManyField``.
+They look and work similar to regular select inputs,
+but with an additional search field. Furthermore
+autocomplete fields load choices asynchronous. This makes them
+suitable to handle foreign relations very large result sets.
+
 Minor features
 --------------
 

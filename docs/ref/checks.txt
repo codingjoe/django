@@ -286,11 +286,12 @@ The following checks are performed on any
 :class:`~django.contrib.admin.ModelAdmin` (or subclass) that is registered
 with the admin site:
 
-* **admin.E001**: The value of ``raw_id_fields`` must be a list or tuple.
-* **admin.E002**: The value of ``raw_id_fields[n]`` refers to ``<field name>``,
-  which is not an attribute of ``<model>``.
-* **admin.E003**: The value of ``raw_id_fields[n]`` must be a foreign key or
-  a many-to-many field.
+* **admin.E001**: The value of ``raw_id_fields`` and ``autocomplete_fields``
+  must be a list or tuple.
+* **admin.E002**: The value of ``raw_id_fields[n]`` and ``autocomplete_fields[n]``
+  refers to ``<field name>``, which is not an attribute of ``<model>``.
+* **admin.E003**: The value of ``raw_id_fields[n]`` and ``autocomplete_fields[n]``
+  must be a foreign key or a many-to-many field.
 * **admin.E004**: The value of ``fields`` must be a list or tuple.
 * **admin.E005**: Both ``fieldsets`` and ``fields`` are specified.
 * **admin.E006**: The value of ``fields`` contains duplicate field(s).

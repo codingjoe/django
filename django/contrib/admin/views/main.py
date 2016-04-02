@@ -12,17 +12,25 @@ from django.contrib.admin.utils import (
     get_fields_from_path, lookup_needs_distinct, prepare_lookup_value, quote,
 )
 from django.core.exceptions import (
-    FieldDoesNotExist, ImproperlyConfigured, SuspiciousOperation,
+    FieldDoesNotExist, ImproperlyConfigured, PermissionDenied,
+    SuspiciousOperation,
 )
-from django.core.paginator import InvalidPage
-from django.db import models
+from django.core.paginator import (
+    EmptyPage, InvalidPage, Page, PageNotAnInteger, Paginator,
+)
+from django.db import models, router
+from django.http import JsonResponse
+from django.http.response import Http404
 from django.urls import reverse
 from django.utils import six
 from django.utils.encoding import force_text
+from django.utils.functional import cached_property
 from django.utils.http import urlencode
 from django.utils.translation import ugettext
 
 # Changelist settings
+from django.views.generic.list import BaseListView
+
 ALL_VAR = 'all'
 ORDER_VAR = 'o'
 ORDER_TYPE_VAR = 'ot'
@@ -380,3 +388,140 @@ class ChangeList(object):
                                                self.opts.model_name),
                        args=(quote(pk),),
                        current_app=self.model_admin.admin_site.name)
+
+
+class AutocompletePage(Page):
+    def has_next(self):
+        """
+        Return true until queryset is smaller than the requested page size.
+
+        This avoids calling calculating the whole page count.
+        """
+        return self.object_list.count() >= self.paginator.per_page
+
+
+class AutocompletePaginator(Paginator):
+    """
+    A Django Paginator for big data sets.
+
+    Because users mostly use the first pages, it doesn't matter
+    if the page count is correct or not, as long as it's high enough.
+
+    Count() queries can take time, because they want to be exact.
+
+    So this paginator just doesn't count.
+    """
+
+    def _get_page(self, *args, **kwargs):
+        return AutocompletePage(*args, **kwargs)
+
+    def validate_number(self, number):
+        """Validates the given 1-based page number but doesn't care about empty pages."""
+        try:
+            number = int(number)
+        except (TypeError, ValueError):
+            raise PageNotAnInteger('That page number is not an integer')
+        if number < 1:
+            raise EmptyPage('That page number is less than 1')
+        return number
+
+    @cached_property
+    def count(self):
+        if self.object_list.exists():
+            return sys.maxsize
+        return 0
+
+
+class AutocompleteJsonView(BaseListView):
+    """
+    View that handles requests from `.AutocompleteWidget`.
+
+    The view only supports HTTP's GET method.
+    """
+    paginator_class = AutocompletePaginator
+    paginate_by = 20
+    admin_site = None
+
+    @property
+    def model(self):
+        return self.field.remote_field.model
+
+    @property
+    def field(self):
+        from django.apps import apps
+        try:
+            original_model = apps.get_model(self.app_label, self.model_name)
+            model_admin = self.admin_site._registry[original_model]
+            if not model_admin.has_change_permission(self.request):
+                # The user does not have access to see this field.
+                raise PermissionDenied
+            return original_model._meta.get_field(self.field_name)
+        except (LookupError, FieldDoesNotExist):
+            raise PermissionDenied('Invalid "field_identifier".')
+
+    @property
+    def model_admin(self):
+        try:
+            return self.admin_site._registry[self.model]
+        except KeyError:
+            raise Http404('%s is not registered in the admin.' % self.model)
+
+    def get(self, request, *args, **kwargs):
+        """
+        Return JSON search result based on a field identifier and a search term.
+
+        Returns:
+             (django.http.JsonResponse)::
+                {
+                    results: [
+                        {
+                            id: "123"
+                            text: "foo",
+                        }
+                    ],
+                    pagination: {
+                        more: true
+                    }
+                }
+        """
+        field_id = request.GET.get('field_identifier', None)
+        if field_id is None:
+            raise PermissionDenied('No "field_identifier" provided.')
+        try:
+            self.app_label, self.model_name, self.field_name = field_id.split('.')
+        except ValueError:
+            raise PermissionDenied('Invalid "field_identifier".')
+        self.term = request.GET.get('term', '')
+        self.object_list = self.get_queryset()
+        context = self.get_context_data()
+        return JsonResponse({
+            'results': [
+                {
+                    'id': force_text(obj.pk),
+                    'text': force_text(obj),
+                }
+                for obj in context['object_list']
+            ],
+            'pagination': {
+                'more': context['page_obj'].has_next()
+            },
+        })
+
+    def get_queryset(self):
+        """Filter queryset based on the models' ``limit_choices_to`` and search term."""
+        queryset = super(AutocompleteJsonView, self).get_queryset()
+        queryset = queryset.using(router.db_for_read(self.model))
+        model_field = self.field
+        if hasattr(model_field, 'get_limit_choices_to'):
+            limit_choices_to = model_field.get_limit_choices_to()
+            if limit_choices_to is not None:
+                queryset = queryset.complex_filter(limit_choices_to)
+        result_set, search_use_distinct = self.model_admin.get_search_results(
+            self.request, queryset, self.term)
+        # Remove duplicates from results, if necessary
+        if search_use_distinct:
+            return result_set.distinct()
+        ordering = self.model_admin.get_ordering(self.request)
+        if ordering:
+            result_set = result_set.order_by(*ordering)
+        return result_set

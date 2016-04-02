@@ -25,8 +25,8 @@ from django.utils.six import StringIO
 from .models import (
     Actor, AdminOrderedAdminMethod, AdminOrderedCallable, AdminOrderedField,
     AdminOrderedModelMethod, Album, Answer, Article, BarAccount, Book,
-    Bookmark, Category, Chapter, ChapterXtra1, Child, ChildOfReferer, Choice,
-    City, Collector, Color, Color2, ComplexSortedPerson, CoverLetter,
+    Bookmark, Building, Category, Chapter, ChapterXtra1, Child, ChildOfReferer,
+    Choice, City, Collector, Color, Color2, ComplexSortedPerson, CoverLetter,
     CustomArticle, CyclicOne, CyclicTwo, DependentChild, DooHickey, EmptyModel,
     EmptyModelHidden, EmptyModelMixin, EmptyModelVisible, ExplicitlyProvidedPK,
     ExternalSubscriber, Fabric, FancyDoodad, FieldOverridePost,
@@ -34,9 +34,9 @@ from .models import (
     GenRelReference, Grommet, ImplicitlyGeneratedPK, Ingredient,
     InlineReference, InlineReferer, Inquisition, Language, Link,
     MainPrepopulated, ModelWithStringPrimaryKey, NotReferenced, OldSubscriber,
-    OtherStory, Paper, Parent, ParentWithDependentChildren, ParentWithUUIDPK,
-    Person, Persona, Picture, Pizza, Plot, PlotDetails, PlotProxy,
-    PluggableSearchPerson, Podcast, Post, PrePopulatedPost,
+    OtherStory, Owner, Paper, Parent, ParentWithDependentChildren,
+    ParentWithUUIDPK, Person, Persona, Picture, Pizza, Plot, PlotDetails,
+    PlotProxy, PluggableSearchPerson, Podcast, Post, PrePopulatedPost,
     PrePopulatedPostLargeSlug, PrePopulatedSubPost, Promo, Question, Recipe,
     Recommendation, Recommender, ReferencedByGenRel, ReferencedByInline,
     ReferencedByParent, RelatedPrepopulated, RelatedWithUUIDPKModel, Report,
@@ -605,6 +605,22 @@ class AlbumAdmin(admin.ModelAdmin):
     list_filter = ['title']
 
 
+class QuestionAdmin(admin.ModelAdmin):
+    search_fields = ['question']
+
+
+class AnswerAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['question']
+
+
+class OwnerAdmin(admin.ModelAdmin):
+    pass
+
+
+class BuildingAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['owner']
+
+
 class PrePopulatedPostLargeSlugAdmin(admin.ModelAdmin):
     prepopulated_fields = {
         'slug': ('title',)
@@ -972,8 +988,10 @@ site.register(ChapterXtra1, ChapterXtra1Admin)
 site.register(Pizza, PizzaAdmin)
 site.register(Topping, ToppingAdmin)
 site.register(Album, AlbumAdmin)
-site.register(Question)
-site.register(Answer, date_hierarchy='question__posted')
+site.register(Question, QuestionAdmin)
+site.register(Answer, AnswerAdmin, date_hierarchy='question__posted')
+site.register(Owner, OwnerAdmin)
+site.register(Building, BuildingAdmin)
 site.register(PrePopulatedPost, PrePopulatedPostAdmin)
 site.register(ComplexSortedPerson, ComplexSortedPersonAdmin)
 site.register(FilteredManager, CustomManagerAdmin)

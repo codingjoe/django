@@ -3,6 +3,7 @@ from functools import update_wrapper
 from django.apps import apps
 from django.conf import settings
 from django.contrib.admin import ModelAdmin, actions
+from django.contrib.admin.views.main import AutocompleteJsonView
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db.models.base import ModelBase
@@ -241,6 +242,7 @@ class AdminSite(object):
             url(r'^jsi18n/$', wrap(self.i18n_javascript, cacheable=True), name='jsi18n'),
             url(r'^r/(?P<content_type_id>\d+)/(?P<object_id>.+)/$', wrap(contenttype_views.shortcut),
                 name='view_on_site'),
+            url(r'^autocomplete/$', wrap(AutocompleteJsonView.as_view(admin_site=self)), name='autocomplete'),
         ]
 
         # Add in each model's views, and create a list of valid URLS for the

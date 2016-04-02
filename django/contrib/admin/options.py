@@ -19,6 +19,9 @@ from django.contrib.admin.utils import (
     NestedObjects, flatten_fieldsets, get_deleted_objects,
     lookup_needs_distinct, model_format_dict, quote, unquote,
 )
+from django.contrib.admin.widgets import (
+    AutocompleteSelect, AutocompleteSelectMultiple,
+)
 from django.contrib.auth import get_permission_codename
 from django.core.exceptions import (
     FieldDoesNotExist, FieldError, PermissionDenied, ValidationError,
@@ -97,6 +100,7 @@ csrf_protect_m = method_decorator(csrf_protect)
 class BaseModelAdmin(six.with_metaclass(forms.MediaDefiningClass)):
     """Functionality common to both ModelAdmin and InlineAdmin."""
 
+    autocomplete_fields = ()
     raw_id_fields = ()
     fields = None
     exclude = None
@@ -216,7 +220,14 @@ class BaseModelAdmin(six.with_metaclass(forms.MediaDefiningClass)):
         Get a form Field for a ForeignKey.
         """
         db = kwargs.get('using')
-        if db_field.name in self.raw_id_fields:
+
+        if db_field.name in self.autocomplete_fields:
+            related_admin = self.admin_site._registry.get(db_field.remote_field.model)
+            if not related_admin.search_fields:
+                msg = 'The admin for %s needs to implement "search_fields".'
+                raise NotImplementedError(msg % db_field.remote_field.model)
+            kwargs['widget'] = AutocompleteSelect(model_admin=self, using=db)
+        elif db_field.name in self.raw_id_fields:
             kwargs['widget'] = widgets.ForeignKeyRawIdWidget(db_field.remote_field, self.admin_site, using=db)
         elif db_field.name in self.radio_fields:
             kwargs['widget'] = widgets.AdminRadioSelect(attrs={
@@ -240,6 +251,13 @@ class BaseModelAdmin(six.with_metaclass(forms.MediaDefiningClass)):
         if not db_field.remote_field.through._meta.auto_created:
             return None
         db = kwargs.get('using')
+
+        if db_field.name in self.autocomplete_fields:
+            related_admin = self.admin_site._registry.get(db_field.remote_field.model)
+            if not related_admin.search_fields:
+                msg = 'The admin for %s needs to implement "search_fields".'
+                raise NotImplementedError(msg % db_field.remote_field.model)
+            kwargs['widget'] = AutocompleteSelectMultiple(model_admin=self, using=db)
 
         if db_field.name in self.raw_id_fields:
             kwargs['widget'] = widgets.ManyToManyRawIdWidget(db_field.remote_field, self.admin_site, using=db)

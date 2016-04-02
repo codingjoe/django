@@ -619,9 +619,16 @@ class WorkHour(models.Model):
     employee = models.ForeignKey(Employee, models.CASCADE)
 
 
+@python_2_unicode_compatible
 class Question(models.Model):
     question = models.CharField(max_length=20)
     posted = models.DateField(default=datetime.date.today)
+
+    class Meta:
+        ordering = ['-posted']
+
+    def __str__(self):
+        return self.question
 
 
 @python_2_unicode_compatible
@@ -631,6 +638,23 @@ class Answer(models.Model):
 
     def __str__(self):
         return self.answer
+
+
+@python_2_unicode_compatible
+class Owner(models.Model):
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
+class Building(models.Model):
+    owner = models.ForeignKey(Owner, models.CASCADE)
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
 
 
 class Reservation(models.Model):

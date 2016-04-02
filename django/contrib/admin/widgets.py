@@ -4,8 +4,10 @@ Form Widget classes specific to the Django admin site.
 from __future__ import unicode_literals
 
 import copy
+import json
 
 from django import forms
+from django.conf import settings
 from django.db.models.deletion import CASCADE
 from django.forms.utils import flatatt
 from django.forms.widgets import RadioFieldRenderer
@@ -397,3 +399,92 @@ class AdminIntegerFieldWidget(forms.TextInput):
 
 class AdminBigIntegerFieldWidget(AdminIntegerFieldWidget):
     class_name = 'vBigIntegerField'
+
+
+class AutocompleteMixin(object):
+    """
+    ForeignKey widget that loads options via AJAX to avoid rendering large Querysets.
+
+    This class is responsible for rendering the necessary
+    data attributes for select2 as well as adding the static
+    form media.
+    """
+
+    url_name = 'admin:autocomplete'
+
+    def __init__(self, model_admin, attrs=None, using=None):
+        self.model_admin = model_admin
+        self.db = using
+        super(AutocompleteMixin, self).__init__(attrs)
+
+    def get_url(self):
+        """Return URL from instance or by reversing :attr:`.url_name`."""
+        return reverse(self.url_name)
+
+    def build_attrs(self, extra_attrs=None, **kwargs):
+        """Set select2's AJAX attributes."""
+        name = kwargs['name']
+        attrs = super(AutocompleteMixin, self).build_attrs(extra_attrs=extra_attrs, **kwargs)
+        attrs.setdefault('class', '')
+        attrs.update({
+            'data-ajax--url': self.get_url(),
+            'data-ajax--cache': "true",
+            'data-ajax--type': "GET",
+            'data-allow-clear': json.dumps(not self.is_required),
+            'data-placeholder': '',  # Needs to be empty to allow clearing of the input
+            'data-field_identifier': self.get_field_identifier(name),
+            'class': attrs['class'] + 'admin-autocomplete',
+        })
+        return attrs
+
+    def get_field_identifier(self, name):
+        model = self.model_admin.model
+        try:
+            # split prefix and name, reverse BaseForm.add_prefix()
+            _, name = name.rsplit('-', 1)
+        except ValueError:
+            pass
+        return "{app_label}.{model_name}.{field_name}".format(
+            app_label=model._meta.app_label,
+            model_name=model.__name__,
+            field_name=name,
+        )
+
+    def render_options(self, selected_choices):
+        """Render only selected options and set QuerySet from :class:`ModelChoicesIterator`."""
+        selected_choices = {force_text(v) for v in selected_choices}
+        output = ['<option></option>' if not self.is_required and not self.allow_multiple_selected else '']
+        selected_choices = {
+            c for c in selected_choices
+            if c not in self.choices.field.empty_values
+        }
+        choices = {
+            (obj.pk, self.choices.field.label_from_instance(obj))
+            for obj in self.choices.queryset.using(self.db).filter(pk__in=selected_choices)
+        }
+        for option_value, option_label in choices:
+            output.append(self.render_option(selected_choices, option_value, option_label))
+        return '\n'.join(output)
+
+    @property
+    def media(self):
+        extra = '' if settings.DEBUG else '.min'
+        return forms.Media(
+            js=(
+                'admin/js/vendor/jquery/jquery%s.js' % extra,
+                'admin/js/vendor/select2/select2.full%s.js' % extra,
+                'admin/js/autocomplete.js',
+            ),
+            css={'screen': (
+                'admin/css/vendor/select2/select2%s.css' % extra,
+                'admin/css/autocomplete.css',
+            )}
+        )
+
+
+class AutocompleteSelect(AutocompleteMixin, forms.Select):
+    pass
+
+
+class AutocompleteSelectMultiple(AutocompleteMixin, forms.SelectMultiple):
+    pass

@@ -1357,8 +1357,8 @@ The possible values for :attr:`~ForeignKey.on_delete` are found in
 
     If ``limit_choices_to`` is or returns a :class:`Q object
     <django.db.models.Q>`, which is useful for :ref:`complex queries
-    <complex-lookups-with-q>`, then it will only have an effect on the choices
-    available in the admin when the field is not listed in
+    <complex-lookups-with-q>`.
+    It will not have and effect on choices in the admin if the field is listed
     :attr:`~django.contrib.admin.ModelAdmin.raw_id_fields` in the
     ``ModelAdmin`` for the model.
 
