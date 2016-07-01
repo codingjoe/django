@@ -1078,9 +1078,9 @@ subclass::
     Don't include a field in ``radio_fields`` unless it's a ``ForeignKey`` or has
     ``choices`` set.
 
-.. versionadded:: 1.11
-
 .. attribute:: ModelAdmin.autocomplete_fields
+
+    .. versionadded:: 1.11
 
     By default, Django's admin uses a select-box interface (<select>) for
     fields that are ``ForeignKey`` or ``ManyToManyField``.
@@ -1105,25 +1105,24 @@ subclass::
     Example::
 
         class QuestionAdmin(admin.ModelAdmin):
-            search_field = ("question_text",)
-            ordering = ("date_created",)
+            search_fields = ('question_text',)
+            ordering = ('date_created',)
 
-        class AnswerAdmin(admin.ModelAdmin):
-            autocomplete_fields = ("question",)
+        class ChoiceAdmin(admin.ModelAdmin):
+            autocomplete_fields = ('question',)
 
-    In the example, the ``AnswerAdmin`` will have an autocomplete Field
-    for the ``ForeignKey`` to the ``Question``. The results will be
-    filtered by the ``question_text`` and sorted by the ``date_created``
-    field.
+    In the example, the ``ChoiceAdmin`` will have an autocomplete field for the
+    ``ForeignKey`` to the ``Question``. The results will be filtered by the
+    ``question_text`` and sorted by the ``date_created`` field.
 
     .. note::
         Ordering using :attr:`ModelAdmin.ordering` may cause performance
-        problems, as soring on large a Queryset will be slow.
+        problems, as soring on a large queryset will be slow.
 
         Since the default search mechanism is not index based, you might
         encounter performance issues on extremely large tables.
 
-        For those cases it is advisable to write your own
+        For those cases it's advisable to write your own
         :func:`ModelAdmin.get_search_results` implementation based on a
         full text index search.
 

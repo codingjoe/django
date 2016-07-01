@@ -124,7 +124,6 @@ class SeleniumTests(AdminSeleniumTestCase):
         self.admin_login(username='super', password='secret', login_url=reverse('admin:index'))
 
     def test_select(self):
-
         self.selenium.get(self.live_server_url + reverse('admin:admin_views_question_add'))
         elem = self.selenium.find_element_by_css_selector('.select2-selection')
         elem.click()
