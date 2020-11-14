@@ -6,7 +6,6 @@ from django.db.backends.ddl_references import (
 )
 from django.db.backends.utils import names_digest, split_identifier
 from django.db.models import Deferrable, Index
-from django.db.models.sql.compiler import SQLCompiler
 from django.db.transaction import TransactionManagementError, atomic
 from django.utils import timezone
 
@@ -42,7 +41,7 @@ def _related_non_m2m_objects(old_field, new_field):
     )
 
 
-class BaseDatabaseSchemaEditor(SQLCompiler):
+class BaseDatabaseSchemaEditor:
     """
     This class and its subclasses are responsible for emitting schema-changing
     statements to the databases - model creation/removal/alteration, field
@@ -120,14 +119,14 @@ class BaseDatabaseSchemaEditor(SQLCompiler):
     # Core utility functions
 
     def prepare_param(self, node):
+        compiler = self.connection.ops.compiler("SQLCompiler")(query=None, connection=self.connection, using=None)
         vendor_impl = getattr(node, 'as_' + self.connection.vendor, None)
         if vendor_impl:
-            sql, params = vendor_impl(self, self.connection)
+            sql, params = vendor_impl(compiler, self.connection)
+        elif hasattr(node, 'as_sql'):
+            sql, params = node.as_sql(compiler, self.connection)
         else:
-            try:
-                sql, params = node.as_sql(self, self.connection)
-            except AttributeError:
-                sql, params = None, (node,)
+            sql, params = None, (node,)
         return sql, tuple(params)
 
     def execute(self, sql, params=()):

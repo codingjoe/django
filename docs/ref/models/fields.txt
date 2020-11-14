@@ -365,7 +365,7 @@ also used when the field is set to ``None``.
 
 .. versionadded:: 3.2
 
-The MariaDB, Oracle and PostgreSQL database backends support
+The MariaDB (10.5+), Oracle and PostgreSQL database backends support
 :doc:`Query Expressions </ref/models/expressions>` as ``default`` values::
 
     from django.db import models
