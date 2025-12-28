@@ -34,7 +34,7 @@ export default [
             "strict": ["error", "global"]
         },
         languageOptions: {
-            ecmaVersion: 6,
+            ecmaVersion: 2022,
             sourceType: "script",
             globals: {
                 ...globals.browser,
