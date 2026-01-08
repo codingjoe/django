@@ -11,19 +11,19 @@
         }
     }
 
-    ready(function() {
+    ready(() => {
         function handleClick(event) {
             event.preventDefault();
-            const params = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams(globalThis.location.search);
             if (params.has('_popup')) {
-                window.close(); // Close the popup.
+                globalThis.close(); // Close the popup.
             } else {
-                window.history.back(); // Otherwise, go back.
+                globalThis.history.back(); // Otherwise, go back.
             }
         }
 
-        document.querySelectorAll('.cancel-link').forEach(function(el) {
+        for (const el of document.querySelectorAll('.cancel-link')) {
             el.addEventListener('click', handleClick);
-        });
+        }
     });
 }

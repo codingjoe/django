@@ -6,7 +6,7 @@ class GeometryTypeControl extends ol.control.Control {
         const options = opt_options || {};
 
         const element = document.createElement('div');
-        element.className = 'switch-type type-' + options.type + ' ol-control ol-unselectable';
+        element.className = `switch-type type-${options.type} ol-control ol-unselectable`;
         if (options.active) {
             element.classList.add("type-active");
         }
@@ -16,7 +16,8 @@ class GeometryTypeControl extends ol.control.Control {
             target: options.target
         });
         const self = this;
-        const switchType = function(e) {
+
+        function switchType(e) {
             e.preventDefault();
             if (options.widget.currentGeometryType !== self) {
                 options.widget.map.removeInteraction(options.widget.interactions.draw);
@@ -29,7 +30,7 @@ class GeometryTypeControl extends ol.control.Control {
                 options.widget.currentGeometryType = self;
                 element.classList.add("type-active");
             }
-        };
+        }
 
         element.addEventListener('click', switchType, false);
         element.addEventListener('touchstart', switchType, false);
@@ -84,9 +85,9 @@ class MapWidget {
 
         // Populate and set handlers for the feature container
         const self = this;
-        this.featureCollection.on('add', function(event) {
+        this.featureCollection.on('add', event => {
             const feature = event.element;
-            feature.on('change', function() {
+            feature.on('change', () => {
                 self.serializeFeatures();
             });
             if (self.ready) {
@@ -100,7 +101,7 @@ class MapWidget {
         const initial_value = document.getElementById(this.options.id).value;
         if (initial_value) {
             const jsonFormat = new ol.format.GeoJSON();
-            const features = jsonFormat.readFeatures('{"type": "Feature", "geometry": ' + initial_value + '}');
+            const features = jsonFormat.readFeatures(`{"type": "Feature", "geometry": ${initial_value}}`);
             const extent = ol.extent.createEmpty();
             features.forEach(function(feature) {
                 this.featureOverlay.getSource().addFeature(feature);
@@ -139,7 +140,7 @@ class MapWidget {
         // Initialize the modify interaction
         this.interactions.modify = new ol.interaction.Modify({
             features: this.featureCollection,
-            deleteCondition: function(event) {
+            deleteCondition: event => {
                 return ol.events.condition.shiftKeyOnly(event) &&
                     ol.events.condition.singleClick(event);
             }
@@ -247,9 +248,9 @@ MapWidget.layerBuilder = {
             source: new ol.source.XYZ({
                 attributions: "NASA Worldview",
                 maxZoom: 8,
-                url: "https://map1{a-c}.vis.earthdata.nasa.gov/wmts-webmerc/" +
-                     "BlueMarble_ShadedRelief_Bathymetry/default/%7BTime%7D/" +
-                     "GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg"
+                url: 'https://map1{a-c}.vis.earthdata.nasa.gov/wmts-webmerc/\
+BlueMarble_ShadedRelief_Bathymetry/default/%7BTime%7D/\
+GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg'
             })
         });
     },

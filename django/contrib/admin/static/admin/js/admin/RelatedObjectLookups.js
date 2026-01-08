@@ -8,7 +8,7 @@
     const relatedWindows = [];
 
     function dismissChildPopups() {
-        relatedWindows.forEach(function(win) {
+        relatedWindows.forEach(win => {
             if(!win.closed) {
                 win.dismissChildPopups();
                 win.close();    
@@ -18,19 +18,19 @@
 
     function setPopupIndex() {
         if(document.getElementsByName("_popup").length > 0) {
-            const index = window.name.lastIndexOf("__") + 2;
-            popupIndex = parseInt(window.name.substring(index));   
+            const index = globalThis.name.lastIndexOf("__") + 2;
+            popupIndex = parseInt(globalThis.name.substring(index));   
         } else {
             popupIndex = 0;
         }
     }
 
     function addPopupIndex(name) {
-        return name + "__" + (popupIndex + 1);
+        return `${name}__${(popupIndex + 1)}`;
     }
 
     function removePopupIndex(name) {
-        return name.replace(new RegExp("__" + (popupIndex + 1) + "$"), '');
+        return name.replace(new RegExp(`__${(popupIndex + 1)}$`), '');
     }
 
     function showAdminPopup(triggeringLink, name_regexp, add_popup) {
@@ -39,7 +39,7 @@
         if (add_popup) {
             href.searchParams.set('_popup', 1);
         }
-        const win = window.open(href, name, 'height=500,width=800,resizable=yes,scrollbars=yes');
+        const win = globalThis.open(href, name, 'height=500,width=800,resizable=yes,scrollbars=yes');
         relatedWindows.push(win);
         win.focus();
         return false;
@@ -53,7 +53,7 @@
         const name = removePopupIndex(win.name);
         const elem = document.getElementById(name);
         if (elem.classList.contains('vManyToManyRawIdAdminField') && elem.value) {
-            elem.value += ',' + chosenId;
+            elem.value += `,${chosenId}`;
         } else {
             elem.value = chosenId;
         }
@@ -100,7 +100,7 @@
         // Select elements with a specific model reference and context of "available-source".
         const selectsRelated = document.querySelectorAll(`[data-model-ref="${modelName}"] [data-context="available-source"]`);
 
-        selectsRelated.forEach(function(select) {
+        selectsRelated.forEach(select => {
             if (currentSelect === select || skipIds && skipIds.includes(select.id)) {
                 return;
             }
@@ -111,7 +111,7 @@
                 option = new Option(newRepr, newId);
                 select.options.add(option);
                 // Update SelectBox cache for related fields.
-                if (window.SelectBox !== undefined && !SelectBox.cache[currentSelect.id]) {
+                if (globalThis.SelectBox !== undefined && !SelectBox.cache[currentSelect.id]) {
                     SelectBox.add_to_cache(select.id, option);
                     SelectBox.redisplay(select.id);
                 }
@@ -133,7 +133,7 @@
                 updateRelatedSelectsOptions(elem, win, null, newRepr, newId);
             } else if (elemName === 'INPUT') {
                 if (elem.classList.contains('vManyToManyRawIdAdminField') && elem.value) {
-                    elem.value += ',' + newId;
+                    elem.value += `,${newId}`;
                 } else {
                     elem.value = newId;
                 }
@@ -141,13 +141,13 @@
             // Trigger a change event to update related links if required.
             $(elem).trigger('change');
         } else {
-            const toId = name + "_to";
+            const toId = `${name}_to`;
             const toElem = document.getElementById(toId);
             const o = new Option(newRepr, newId);
             SelectBox.add_to_cache(toId, o);
             SelectBox.redisplay(toId);
             if (toElem && toElem.nodeName.toUpperCase() === 'SELECT') {
-                const skipIds = [name + "_from"];
+                const skipIds = [`${name}_from`];
                 updateRelatedSelectsOptions(toElem, win, null, newRepr, newId, skipIds);
             }
         }
@@ -198,29 +198,29 @@
         win.close();
     }
 
-    window.showRelatedObjectLookupPopup = showRelatedObjectLookupPopup;
-    window.dismissRelatedLookupPopup = dismissRelatedLookupPopup;
-    window.showRelatedObjectPopup = showRelatedObjectPopup;
-    window.updateRelatedObjectLinks = updateRelatedObjectLinks;
-    window.dismissAddRelatedObjectPopup = dismissAddRelatedObjectPopup;
-    window.dismissChangeRelatedObjectPopup = dismissChangeRelatedObjectPopup;
-    window.dismissDeleteRelatedObjectPopup = dismissDeleteRelatedObjectPopup;
-    window.dismissChildPopups = dismissChildPopups;
-    window.relatedWindows = relatedWindows;
+    globalThis.showRelatedObjectLookupPopup = showRelatedObjectLookupPopup;
+    globalThis.dismissRelatedLookupPopup = dismissRelatedLookupPopup;
+    globalThis.showRelatedObjectPopup = showRelatedObjectPopup;
+    globalThis.updateRelatedObjectLinks = updateRelatedObjectLinks;
+    globalThis.dismissAddRelatedObjectPopup = dismissAddRelatedObjectPopup;
+    globalThis.dismissChangeRelatedObjectPopup = dismissChangeRelatedObjectPopup;
+    globalThis.dismissDeleteRelatedObjectPopup = dismissDeleteRelatedObjectPopup;
+    globalThis.dismissChildPopups = dismissChildPopups;
+    globalThis.relatedWindows = relatedWindows;
 
     // Kept for backward compatibility
-    window.showAddAnotherPopup = showRelatedObjectPopup;
-    window.dismissAddAnotherPopup = dismissAddRelatedObjectPopup;
+    globalThis.showAddAnotherPopup = showRelatedObjectPopup;
+    globalThis.dismissAddAnotherPopup = dismissAddRelatedObjectPopup;
 
-    window.addEventListener('unload', function(evt) {
-        window.dismissChildPopups();
+    globalThis.addEventListener('unload', evt => {
+        globalThis.dismissChildPopups();
     });
 
-    $(document).ready(function() {
+    $(document).ready(() => {
         setPopupIndex();
         $("a[data-popup-opener]").on('click', function(event) {
             event.preventDefault();
-            opener.dismissRelatedLookupPopup(window, $(this).data("popup-opener"));
+            opener.dismissRelatedLookupPopup(globalThis, $(this).data("popup-opener"));
         });
         $('body').on('click', '.related-widget-wrapper-link[data-popup="yes"]', function(e) {
             e.preventDefault();

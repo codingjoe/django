@@ -11,7 +11,7 @@
         main.classList.toggle('shifted', navSidebarIsOpen === 'true');
         navSidebar.setAttribute('aria-expanded', navSidebarIsOpen);
 
-        toggleNavSidebar.addEventListener('click', function() {
+        toggleNavSidebar.addEventListener('click', () => {
             if (navSidebarIsOpen === 'true') {
                 navSidebarIsOpen = 'false';
             } else {
@@ -74,6 +74,6 @@
             checkValue({target: nav, key: ''});
         }
     }
-    window.initSidebarQuickFilter = initSidebarQuickFilter;
+    globalThis.initSidebarQuickFilter = initSidebarQuickFilter;
     initSidebarQuickFilter();
 }

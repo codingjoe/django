@@ -2,7 +2,7 @@
 
 const globalThreshold = 50; // Global code coverage threshold (as a percentage)
 
-module.exports = function(grunt) {
+module.exports = grunt => {
     grunt.initConfig({
         qunit: {
             all: ['js_tests/tests.html']

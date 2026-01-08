@@ -2,15 +2,15 @@
 'use strict';
 {
     function show(selector) {
-        document.querySelectorAll(selector).forEach(function(el) {
+        for (const el of document.querySelectorAll(selector)) {
             el.classList.remove('hidden');
-        });
+        }
     }
 
     function hide(selector) {
-        document.querySelectorAll(selector).forEach(function(el) {
+        for (const el of document.querySelectorAll(selector)) {
             el.classList.add('hidden');
-        });
+        }
     }
 
     function showQuestion(options) {
@@ -37,7 +37,7 @@
     function clearAcross(options) {
         reset(options);
         const acrossInputs = document.querySelectorAll(options.acrossInput);
-        acrossInputs.forEach(function(acrossInput) {
+        acrossInputs.forEach(acrossInput => {
             acrossInput.value = 0;
         });
         document.querySelector(options.actionContainer).classList.remove(options.selectedClass);
@@ -49,14 +49,14 @@
         } else {
             reset(options);
         }
-        actionCheckboxes.forEach(function(el) {
+        actionCheckboxes.forEach(el => {
             el.checked = checked;
             el.closest('tr').classList.toggle(options.selectedClass, checked);
         });
     }
 
     function updateCounter(actionCheckboxes, options) {
-        const sel = Array.from(actionCheckboxes).filter(function(el) {
+        const sel = [...actionCheckboxes].filter(el => {
             return el.checked;
         }).length;
         const counter = document.querySelector(options.counterContainer);
@@ -88,8 +88,11 @@
         selectedClass: "selected"
     };
 
-    window.Actions = function(actionCheckboxes, options) {
-        options = Object.assign({}, defaults, options);
+    globalThis.Actions = (actionCheckboxes, options) => {
+        options = {
+            ...defaults,
+            ...options
+        };
         let list_editable_changed = false;
         let lastChecked = null;
         let shiftPressed = false;
@@ -107,43 +110,43 @@
             updateCounter(actionCheckboxes, options);
         });
 
-        document.querySelectorAll(options.acrossQuestions + " a").forEach(function(el) {
-            el.addEventListener('click', function(event) {
+        for (const el of document.querySelectorAll(`${options.acrossQuestions} a`)) {
+            el.addEventListener('click', event => {
                 event.preventDefault();
                 const acrossInputs = document.querySelectorAll(options.acrossInput);
-                acrossInputs.forEach(function(acrossInput) {
+                acrossInputs.forEach(acrossInput => {
                     acrossInput.value = 1;
                 });
                 showClear(options);
             });
-        });
+        }
 
-        document.querySelectorAll(options.acrossClears + " a").forEach(function(el) {
-            el.addEventListener('click', function(event) {
+        for (const el of document.querySelectorAll(`${options.acrossClears} a`)) {
+            el.addEventListener('click', event => {
                 event.preventDefault();
                 document.getElementById(options.allToggleId).checked = false;
                 clearAcross(options);
                 checker(actionCheckboxes, options, false);
                 updateCounter(actionCheckboxes, options);
             });
-        });
+        }
 
         function affectedCheckboxes(target, withModifier) {
             const multiSelect = (lastChecked && withModifier && lastChecked !== target);
             if (!multiSelect) {
                 return [target];
             }
-            const checkboxes = Array.from(actionCheckboxes);
+            const checkboxes = [...actionCheckboxes];
             const targetIndex = checkboxes.findIndex(el => el === target);
             const lastCheckedIndex = checkboxes.findIndex(el => el === lastChecked);
             const startIndex = Math.min(targetIndex, lastCheckedIndex);
             const endIndex = Math.max(targetIndex, lastCheckedIndex);
             const filtered = checkboxes.filter((el, index) => (startIndex <= index) && (index <= endIndex));
             return filtered;
-        };
+        }
 
-        Array.from(document.getElementById('result_list').tBodies).forEach(function(el) {
-            el.addEventListener('change', function(event) {
+        for (const el of document.getElementById('result_list').tBodies) {
+            el.addEventListener('change', event => {
                 const target = event.target;
                 if (target.classList.contains('action-select')) {
                     const checkboxes = affectedCheckboxes(target, shiftPressed);
@@ -154,9 +157,9 @@
                     list_editable_changed = true;
                 }
             });
-        });
+        }
 
-        document.querySelector('#changelist-form button[name=index]').addEventListener('click', function(event) {
+        document.querySelector('#changelist-form button[name=index]').addEventListener('click', event => {
             if (list_editable_changed) {
                 const confirmed = confirm(gettext("You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."));
                 if (!confirmed) {
@@ -168,7 +171,7 @@
         const el = document.querySelector('#changelist-form input[name=_save]');
         // The button does not exist if no fields are editable.
         if (el) {
-            el.addEventListener('click', function(event) {
+            el.addEventListener('click', event => {
                 if (document.querySelector('[name=action]').value) {
                     const text = list_editable_changed
                         ? gettext("You have selected an action, but you haven’t saved your changes to individual fields yet. Please click OK to save. You’ll need to re-run the action.")
@@ -181,7 +184,7 @@
         }
         // Sync counter when navigating to the page, such as through the back
         // button.
-        window.addEventListener('pageshow', (event) => updateCounter(actionCheckboxes, options));
+        globalThis.addEventListener('pageshow', (event) => updateCounter(actionCheckboxes, options));
     };
 
     // Call function fn when the DOM is loaded and ready. If it is already
@@ -195,7 +198,7 @@
         }
     }
 
-    ready(function() {
+    ready(() => {
         const actionsEls = document.querySelectorAll('tr input.action-select');
         if (actionsEls.length > 0) {
             Actions(actionsEls);

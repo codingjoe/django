@@ -63,10 +63,10 @@ depends on core.js for utility functions like removeChildren or quickElement
             pgettext('one letter Saturday', 'S')
         ],
         firstDayOfWeek: parseInt(get_format('FIRST_DAY_OF_WEEK')),
-        isLeapYear: function(year) {
+        isLeapYear: year => {
             return (((year % 4) === 0) && ((year % 100) !== 0 ) || ((year % 400) === 0));
         },
-        getDaysInMonth: function(month, year) {
+        getDaysInMonth: (month, year) => {
             let days;
             if (month === 1 || month === 3 || month === 5 || month === 7 || month === 8 || month === 10 || month === 12) {
                 days = 31;
@@ -82,7 +82,7 @@ depends on core.js for utility functions like removeChildren or quickElement
             }
             return days;
         },
-        draw: function(month, year, div_id, callback, selected) { // month = 1-12, year = 1-9999
+        draw: (month, year, div_id, callback, selected) => { // month = 1-12, year = 1-9999
             const today = new Date();
             const todayDay = today.getDate();
             const todayMonth = today.getMonth() + 1;
@@ -110,7 +110,7 @@ depends on core.js for utility functions like removeChildren or quickElement
             const calDiv = document.getElementById(div_id);
             removeChildren(calDiv);
             const calTable = document.createElement('table');
-            quickElement('caption', calTable, CalendarNamespace.monthsOfYear[month - 1] + ' ' + year);
+            quickElement('caption', calTable, `${CalendarNamespace.monthsOfYear[month - 1]} ${year}`);
             const tableBody = quickElement('tbody', calTable);
 
             // Draw days-of-week header
@@ -234,6 +234,6 @@ depends on core.js for utility functions like removeChildren or quickElement
             this.drawCurrent();
         }
     };
-    window.Calendar = Calendar;
-    window.CalendarNamespace = CalendarNamespace;
+    globalThis.Calendar = Calendar;
+    globalThis.CalendarNamespace = CalendarNamespace;
 }

@@ -62,51 +62,51 @@ function findPosY(obj) {
     };
 
     Date.prototype.getTwoDigitMonth = function() {
-        return (this.getMonth() < 9) ? '0' + (this.getMonth() + 1) : (this.getMonth() + 1);
+        return (this.getMonth() < 9) ? `0${(this.getMonth() + 1)}` : (this.getMonth() + 1);
     };
 
     Date.prototype.getTwoDigitDate = function() {
-        return (this.getDate() < 10) ? '0' + this.getDate() : this.getDate();
+        return (this.getDate() < 10) ? `0${this.getDate()}` : this.getDate();
     };
 
     Date.prototype.getTwoDigitTwelveHour = function() {
-        return (this.getTwelveHours() < 10) ? '0' + this.getTwelveHours() : this.getTwelveHours();
+        return (this.getTwelveHours() < 10) ? `0${this.getTwelveHours()}` : this.getTwelveHours();
     };
 
     Date.prototype.getTwoDigitHour = function() {
-        return (this.getHours() < 10) ? '0' + this.getHours() : this.getHours();
+        return (this.getHours() < 10) ? `0${this.getHours()}` : this.getHours();
     };
 
     Date.prototype.getTwoDigitMinute = function() {
-        return (this.getMinutes() < 10) ? '0' + this.getMinutes() : this.getMinutes();
+        return (this.getMinutes() < 10) ? `0${this.getMinutes()}` : this.getMinutes();
     };
 
     Date.prototype.getTwoDigitSecond = function() {
-        return (this.getSeconds() < 10) ? '0' + this.getSeconds() : this.getSeconds();
+        return (this.getSeconds() < 10) ? `0${this.getSeconds()}` : this.getSeconds();
     };
 
     Date.prototype.getAbbrevDayName = function() {
-        return typeof window.CalendarNamespace === "undefined"
-            ? '0' + this.getDay()
-            : window.CalendarNamespace.daysOfWeekAbbrev[this.getDay()];
+        return typeof globalThis.CalendarNamespace === "undefined"
+            ? `0${this.getDay()}`
+            : globalThis.CalendarNamespace.daysOfWeekAbbrev[this.getDay()];
     };
 
     Date.prototype.getFullDayName = function() {
-        return typeof window.CalendarNamespace === "undefined"
-            ? '0' + this.getDay()
-            : window.CalendarNamespace.daysOfWeek[this.getDay()];
+        return typeof globalThis.CalendarNamespace === "undefined"
+            ? `0${this.getDay()}`
+            : globalThis.CalendarNamespace.daysOfWeek[this.getDay()];
     };
 
     Date.prototype.getAbbrevMonthName = function() {
-        return typeof window.CalendarNamespace === "undefined"
+        return typeof globalThis.CalendarNamespace === "undefined"
             ? this.getTwoDigitMonth()
-            : window.CalendarNamespace.monthsOfYearAbbrev[this.getMonth()];
+            : globalThis.CalendarNamespace.monthsOfYearAbbrev[this.getMonth()];
     };
 
     Date.prototype.getFullMonthName = function() {
-        return typeof window.CalendarNamespace === "undefined"
+        return typeof globalThis.CalendarNamespace === "undefined"
             ? this.getTwoDigitMonth()
-            : window.CalendarNamespace.monthsOfYear[this.getMonth()];
+            : globalThis.CalendarNamespace.monthsOfYear[this.getMonth()];
     };
 
     Date.prototype.strftime = function(format) {
@@ -123,11 +123,11 @@ function findPosY(obj) {
             M: this.getTwoDigitMinute(),
             p: (this.getHours() >= 12) ? 'PM' : 'AM',
             S: this.getTwoDigitSecond(),
-            w: '0' + this.getDay(),
+            w: `0${this.getDay()}`,
             x: this.toLocaleDateString(),
             X: this.toLocaleTimeString(),
-            y: ('' + this.getFullYear()).substr(2, 4),
-            Y: '' + this.getFullYear(),
+            y: `${this.getFullYear()}`.slice(2, 2 + 4),
+            Y: `${this.getFullYear()}`,
             '%': '%'
         };
         let result = '', i = 0;

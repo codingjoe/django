@@ -11,7 +11,7 @@
 
     function cycleTheme() {
         const currentTheme = localStorage.getItem("theme") || "auto";
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const prefersDark = globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
 
         if (prefersDark) {
             // Auto (dark) -> Light -> Dark
@@ -40,11 +40,12 @@
         currentTheme ? setTheme(currentTheme) : setTheme("auto");
     }
 
-    window.addEventListener('load', function(_) {
+    globalThis.addEventListener('load', _ => {
         const buttons = document.getElementsByClassName("theme-toggle");
-        Array.from(buttons).forEach((btn) => {
+
+        for (const btn of buttons) {
             btn.addEventListener("click", cycleTheme);
-        });
+        }
     });
 
     initTheme();
